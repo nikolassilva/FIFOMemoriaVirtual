@@ -8,197 +8,197 @@
 
 using namespace std;
 
-ifstream arqEntrada ("entrada.txt");
-ofstream arqSaida ("saida.txt");
+ifstream inputFile ("entrada.txt");
+ofstream outputFile ("saida.txt");
 
 int tamVirtual;
-int tamFisica;
-int tamMoldura;
+int physicalMemSize;
+int frameSize;
 
 // Function to push element in last by popping from front until size becomes 0
-void FrontToLast(queue<int>& q, int qsize)
+void FrontToLast(queue<int>& targetQueue, int qsize)
 {
     // Base condition
     if (qsize <= 0)
         return;
 
     // pop front element and push this last in a queue
-    q.push(q.front());
-    q.pop();
+    targetQueue.push(targetQueue.front());
+    targetQueue.pop();
 
     // Recursive call for pushing element
-    FrontToLast(q, qsize - 1);
+    FrontToLast(targetQueue, qsize - 1);
 }
 
 // Function to push an element in the queue while maintaining the sorted order
-void pushInQueue(queue<int> &q, int temp, int qsize)
+void pushInQueue(queue<int> &targetQueue, int temp, int qsize)
 {
     // Base condition
-    if (q.empty() || qsize == 0) {
-        q.push(temp);
+    if (targetQueue.empty() || qsize == 0) {
+        targetQueue.push(temp);
         return;
     }
 
     // If current element is less than the element at the front
-    else if (temp <= q.front()) {
+    else if (temp <= targetQueue.front()) {
 
         // Call stack with front of queue
-        q.push(temp);
+        targetQueue.push(temp);
 
         // Recursive call for inserting a front element of the queue to the last
-        FrontToLast(q, qsize);
+        FrontToLast(targetQueue, qsize);
     }
     else {
 
         // Push front element into last in a queue
-        q.push(q.front());
-        q.pop();
+        targetQueue.push(targetQueue.front());
+        targetQueue.pop();
 
         // Recursive call for pushing element in a queue
-        pushInQueue(q, temp, qsize - 1);
+        pushInQueue(targetQueue, temp, qsize - 1);
     }
 }
 
 // Function to sort the given queue using recursion
-void sortQueue(queue<int>& q)
+void sortQueue(queue<int>& targetQueue)
 {
 
     // Return if queue is empty
-    if (q.empty())
+    if (targetQueue.empty())
         return;
 
     // Get the front element which will be stored in this variable throughout the recursion stack
-    int temp = q.front();
+    int temp = targetQueue.front();
 
     // Remove the front element
-    q.pop();
+    targetQueue.pop();
 
     // Recursive call
-    sortQueue(q);
+    sortQueue(targetQueue);
 
     // Push the current element into the queue according to the sorting order
-    pushInQueue(q, temp, q.size());
+    pushInQueue(targetQueue, temp, targetQueue.size());
 }
 
-void writeQueue(queue<int> q){
-    while (!q.empty()){
-		arqSaida<<q.front()/tamMoldura<<" ";
-		q.pop();
+void writeQueue(queue<int> targetQueue){
+    while (!targetQueue.empty()){
+		outputFile<<targetQueue.front()/frameSize<<" ";
+		targetQueue.pop();
 	}
-	arqSaida<<endl;
+	outputFile<<endl;
 }
 
 //Function to print the queue
-void printQueue(queue<int> q)
+void printQueue(queue<int> targetQueue)
 {
-	while (!q.empty()){
-		cout<<q.front()/tamMoldura<<" ";
-		q.pop();
+	while (!targetQueue.empty()){
+		cout<<targetQueue.front()/frameSize<<" ";
+		targetQueue.pop();
 	}
 	cout<<endl;
 }
 
 //função para verificar se a página referente ao endereço está na memória
-bool repetida(queue<int> aux, int endereco) {
-    int pagEndereco = endereco/tamMoldura;
-    int tam = aux.size();
-    for(int j=0; j<tam; j++){
-        int pagFrenteMemoria = aux.front()/tamMoldura;
-        if(pagEndereco == pagFrenteMemoria) {
+bool checkRepetition(queue<int> mainMemory, int address) {
+    int pageAddress = address/frameSize;
+    int sizeMemory = mainMemory.size();
+    for(int j=0; j<sizeMemory; j++){
+        int frontMemoryPage = mainMemory.front()/frameSize;
+        if(pageAddress == frontMemoryPage) {
            return true;
         }
         else{
-           aux.pop();
+           mainMemory.pop();
         }
     }
 
     return false;
 }
 
-void FIFO (queue<int> q, int acessos){
+void FIFO (queue<int> addressQueue, int numberAccesses){
 
-    int slots = tamFisica/tamMoldura; //quantidade de slots da memoria
-    int copias = 0; // quantidade de swaps
-    queue <int> principal; // fila que representa a memoria principal
+    int memPhysicalCapacity = physicalMemSize/frameSize; //quantidade de memPhysicalCapacity da memoria
+    int swaps = 0; // quantidade de swaps
+    queue <int> mainMemory; // fila que representa a memoria mainMemory
 
-    for(int i=0;i<acessos;i++){
-            //se a pagina é repetida o programa retorna ao inicio
+    for(int i=0;i<numberAccesses;i++){
+            //se a pagina é checkRepetition o programa retorna ao inicio
             //do contrario:
             //se existir slot vazio a nova pagina e carregada diretamente
-            //do contrario o FIFO é realizado e o numero de copias é incrementado
-            if(!repetida(principal, q.front())){
-                if(principal.size()<slots){
-                    principal.push(q.front());
-                    q.pop();
+            //do contrario o FIFO é realizado e o numero de swaps é incrementado
+            if(!checkRepetition(mainMemory, addressQueue.front())){
+                if(mainMemory.size()<memPhysicalCapacity){
+                    mainMemory.push(addressQueue.front());
+                    addressQueue.pop();
                 } else {
-                    principal.pop();
-                    principal.push(q.front());
-                    q.pop();
-                    copias++;
+                    mainMemory.pop();
+                    mainMemory.push(addressQueue.front());
+                    addressQueue.pop();
+                    swaps++;
                 }
             }
             else{
-                q.pop();
+                addressQueue.pop();
             }
 
-        printQueue(principal);
+        printQueue(mainMemory);
     }
 
-    sortQueue(principal);
+    sortQueue(mainMemory);
 
-    cout<<"Swaps "<<copias<<endl;
-    arqSaida<<copias<<endl;
+    cout<<"Swaps "<<swaps<<endl;
+    outputFile<<swaps<<endl;
 
-    cout<<"Paginas restantes ";
-    printQueue(principal);
-    writeQueue(principal);
+    cout<<"Remaining Pages ";
+    printQueue(mainMemory);
+    writeQueue(mainMemory);
 
 }
 
 int main() {
 
-    if(arqEntrada.is_open()){
+    if(inputFile.is_open()){
 
-        string linha;
-        int qntdAcessos;
+        string line;
+        int numberAccesses;
 
-        // leitura da primeira linha do arquivo
-        getline(arqEntrada, linha);
+        // leitura da primeira line do arquivo
+        getline(inputFile, line);
 
         char aux[127];
-        strcpy(aux, linha.c_str());
+        strcpy(aux, line.c_str());
 
         //leitura do tamanho da memoria virtual
-        char *dados = strtok(aux, " ");
-        tamVirtual = atoi(dados);
+        char *data = strtok(aux, " ");
+        tamVirtual = atoi(data);
 
         //leitura do tamanho da memoria fisica
-        dados = strtok(NULL, " ");
-        tamFisica = atoi(dados);
+        data = strtok(NULL, " ");
+        physicalMemSize = atoi(data);
 
         //leitura do tamanho da moldura
-        dados = strtok(NULL, " ");
-        tamMoldura = atoi(dados);
+        data = strtok(NULL, " ");
+        frameSize = atoi(data);
 
-        //leitura quantidade acessos
-        getline(arqEntrada, linha);
-        qntdAcessos = stoi(linha);
+        //leitura quantidade accesses
+        getline(inputFile, line);
+        numberAccesses = stoi(line);
 
-        queue <int> filaEnderecos;
+        queue <int> addressQueue;
 
         //fila de paginas acessadas
-        for (int i=0; i<qntdAcessos; i++){
-            getline(arqEntrada, linha);
-            filaEnderecos.push(stoi(linha));
+        for (int i=0; i<numberAccesses; i++){
+            getline(inputFile, line);
+            addressQueue.push(stoi(line));
         }
 
-        printQueue(filaEnderecos);
+        printQueue(addressQueue);
 
         //chamada da funcao
-        FIFO(filaEnderecos, qntdAcessos);
+        FIFO(addressQueue, numberAccesses);
 
         } else {
-            cout<<"Erro ao abrir o arquivo de entrada."<<endl;
+            cout<<"Error: Input file is Wrong!!!"<<endl;
         }
 
     return 0;
