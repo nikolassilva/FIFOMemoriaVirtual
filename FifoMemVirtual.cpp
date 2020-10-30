@@ -80,12 +80,19 @@ void sortQueue(queue<int>& q)
     pushInQueue(q, temp, q.size());
 }
 
+void writeQueue(queue<int> q){
+    while (!q.empty()){
+		arqSaida<<q.front()/tamMoldura<<" ";
+		q.pop();
+	}
+	arqSaida<<endl;
+}
+
 //Function to print the queue
 void printQueue(queue<int> q)
 {
 	while (!q.empty()){
 		cout<<q.front()/tamMoldura<<" ";
-		arqSaida<<q.front()/tamMoldura<<" ";
 		q.pop();
 	}
 	cout<<endl;
@@ -144,6 +151,7 @@ void FIFO (queue<int> q, int acessos){
 
     cout<<"Paginas restantes ";
     printQueue(principal);
+    writeQueue(principal);
 
 }
 
