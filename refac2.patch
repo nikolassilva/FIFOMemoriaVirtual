@@ -1,0 +1,122 @@
+diff --git a/FifoMemVirtual.cpp b/FifoMemVirtual.cpp
+index b7dc098..8c8e459 100644
+--- a/FifoMemVirtual.cpp
++++ b/FifoMemVirtual.cpp
+@@ -78,6 +78,14 @@ void sortQueue(queue<int>& q)
+ 
+     // Push the current element into the queue according to the sorting order
+     pushInQueue(q, temp, q.size());
++}
++
++void writeQueue(queue<int> q){
++    while (!q.empty()){
++		arqSaida<<q.front()/tamMoldura<<" ";
++		q.pop();
++	}
++	arqSaida<<endl;
+ }
+ 
+ //Function to print the queue
+@@ -85,10 +93,26 @@ void printQueue(queue<int> q)
+ {
+ 	while (!q.empty()){
+ 		cout<<q.front()/tamMoldura<<" ";
+-		arqSaida<<q.front()/tamMoldura<<" ";
+ 		q.pop();
+ 	}
+ 	cout<<endl;
++}
++
++//função para verificar se a página referente ao endereço está na memória
++bool repetida(queue<int> aux, int endereco) {
++    int pagEndereco = endereco/tamMoldura;
++    int tam = aux.size();
++    for(int j=0; j<tam; j++){
++        int pagFrenteMemoria = aux.front()/tamMoldura;
++        if(pagEndereco == pagFrenteMemoria) {
++           return true;
++        }
++        else{
++           aux.pop();
++        }
++    }
++
++    return false;
+ }
+ 
+ void FIFO (queue<int> q, int acessos){
+@@ -98,44 +122,11 @@ void FIFO (queue<int> q, int acessos){
+     queue <int> principal; // fila que representa a memoria principal
+ 
+     for(int i=0;i<acessos;i++){
+-
+-        //verifica se a memoria principal esta vazia
+-        //caso positivo carrega o primeiro endereco da fila
+-        if(principal.empty()){
+-            principal.push(q.front());
+-            q.pop();
+-        } else {
+-
+-            bool repetida = false; //indica se a pagina ja esta na memoria principal
+-            int pgNova = q.front()/tamMoldura; //armazena a pagina referente ao primeiro endereco na fila
+-            int tam = principal.size(); // quantidade de paginas na memoria principal
+-            queue<int> bkp = principal; // copia da memoria principal
+-
+-            //percorre todas as paginas na memoria principal
+-            for(int i=0;i<tam;i++){
+-            int pgFrente = principal.front()/tamMoldura; // armazena a pagina referente ao primeiro endereco na memoria
+-
+-                //verifica se a nova pagina ja esta na memoria principal
+-                //caso positivo a nova pagina é descartada
+-                //caso negativo a pagina que esta a frente da memoria principal é descartada,
+-                //a proxima pagina na memoria vem pra frente e o programa repete a comparacao
+-                if(pgNova==pgFrente){
+-                    repetida=true;
+-                    q.pop();
+-                    break;
+-                } else {
+-                    principal.pop();
+-                }
+-            }
+-
+-            //recuperac o estado da memoria principal antes da checagem de duplicidade
+-            principal = bkp;
+-
+             //se a pagina é repetida o programa retorna ao inicio
+             //do contrario:
+             //se existir slot vazio a nova pagina e carregada diretamente
+             //do contrario o FIFO é realizado e o numero de copias é incrementado
+-            if(repetida==false){
++            if(!repetida(principal, q.front())){
+                 if(principal.size()<slots){
+                     principal.push(q.front());
+                     q.pop();
+@@ -145,19 +136,22 @@ void FIFO (queue<int> q, int acessos){
+                     q.pop();
+                     copias++;
+                 }
++            }
++            else{
++                q.pop();
+             }
+-        }
+ 
+         printQueue(principal);
+     }
+ 
+-sortQueue(principal);
++    sortQueue(principal);
+ 
+-cout<<"Swaps "<<copias<<endl;
+-arqSaida<<copias<<endl;
++    cout<<"Swaps "<<copias<<endl;
++    arqSaida<<copias<<endl;
+ 
+-cout<<"Paginas restantes ";
+-printQueue(principal);
++    cout<<"Paginas restantes ";
++    printQueue(principal);
++    writeQueue(principal);
+ 
+ }
+ 
